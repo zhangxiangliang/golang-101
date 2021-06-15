@@ -8,22 +8,33 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	count := 0
-	finished := 0
+	var c chan bool = make(chan bool)
 
 	for i := 0; i < 10; i++ {
 		go func() {
-			vote := requestVote()
-			if vote {
-				count++
-			}
-			finished++
+			c <- requestVote()
 		}()
 	}
 
-	for count < 5 && finished != 10 {
-		// wait
+	var count int = 0
+	var finished int = 0
+
+	for {
+		var vote bool = <-c
+		if vote {
+			count = count + 1
+		}
+		finished = finished + 1
+
+		if count > 5 {
+			break
+		}
+
+		if finished == 10 {
+			break
+		}
 	}
+
 	if count >= 5 {
 		println("received 5+ votes!")
 	} else {

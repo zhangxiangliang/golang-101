@@ -9,9 +9,10 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	count := 0
-	finished := 0
+	var count int = 0
+	var finished int = 0
 	var mu sync.Mutex
+	cond := sync.NewCond(&mu)
 
 	for i := 0; i < 10; i++ {
 		go func() {
@@ -22,22 +23,21 @@ func main() {
 				count++
 			}
 			finished++
+			cond.Broadcast()
 		}()
 	}
 
-	for {
-		mu.Lock()
-
-		if count >= 5 || finished == 10 {
-			break
-		}
-		mu.Unlock()
+	mu.Lock()
+	for count < 5 && finished != 10 {
+		cond.Wait()
 	}
+
 	if count >= 5 {
 		println("received 5+ votes!")
 	} else {
 		println("lost")
 	}
+
 	mu.Unlock()
 }
 

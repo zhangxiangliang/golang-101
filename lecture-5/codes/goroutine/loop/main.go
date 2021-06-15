@@ -1,16 +1,19 @@
 package main
 
+import "sync"
+
 func main() {
-	done := make(chan bool)
+	var wg sync.WaitGroup
+
 	for i := 0; i < 5; i++ {
+		wg.Add(1)
 		go func(x int) {
 			sendRPC(x)
-			done <- true
+			wg.Done()
 		}(i)
 	}
-	for i := 0; i < 5; i++ {
-		<-done
-	}
+
+	wg.Wait()
 }
 
 func sendRPC(i int) {

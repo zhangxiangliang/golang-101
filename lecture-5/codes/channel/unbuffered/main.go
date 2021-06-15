@@ -6,16 +6,13 @@ import (
 )
 
 func main() {
-	c := make(chan bool, 1)
+	c := make(chan bool)
 	go func() {
 		time.Sleep(1 * time.Second)
 		<-c
 	}()
-	start := time.Now()
-	c <- true
-	fmt.Printf("send took %v\n", time.Since(start))
 
-	start = time.Now()
-	c <- true
+	start := time.Now()
+	c <- true // blocks until other goroutine receives
 	fmt.Printf("send took %v\n", time.Since(start))
 }

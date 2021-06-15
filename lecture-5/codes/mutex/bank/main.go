@@ -7,31 +7,24 @@ import (
 )
 
 func main() {
-	alice := 10000
-	bob := 10000
 	var mu sync.Mutex
 
+	alice := 1000
+	bob := 1000
 	total := alice + bob
 
 	go func() {
-		for i := 0; i < 1000; i++ {
-			mu.Lock()
-			alice -= 1
-			mu.Unlock()
-			mu.Lock()
-			bob += 1
-			mu.Unlock()
-		}
+		mu.Lock()
+		alice = alice - 1
+		bob = bob + 1
+		mu.Unlock()
 	}()
+
 	go func() {
-		for i := 0; i < 1000; i++ {
-			mu.Lock()
-			bob -= 1
-			mu.Unlock()
-			mu.Lock()
-			alice += 1
-			mu.Unlock()
-		}
+		mu.Lock()
+		alice = alice + 1
+		bob = bob - 1
+		mu.Unlock()
 	}()
 
 	start := time.Now()

@@ -2,41 +2,45 @@ package main
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	c := make(chan bool)
+	var count int = 0
+	var finished int = 0
+	var mu sync.Mutex
 
 	for i := 0; i < 10; i++ {
 		go func() {
-			c <- requestVote()
+			vote := requestVote()
+			mu.Unlock()
+			defer mu.Unlock()
+
+			if vote {
+				count = count + 1
+			}
+			finished = finished + 1
 		}()
 	}
 
-	count := 0
-	finished := 0
-
 	for {
-		vote := <-c
-		if vote {
-			count++
-		}
-		finished++
-		if count > 5 {
-			break // XXX
-		}
-		if finished == 10 {
+		mu.Lock()
+		if count >= 5 || finished == 10 {
 			break
 		}
+		mu.Unlock()
 	}
+
 	if count >= 5 {
 		println("received 5+ votes!")
 	} else {
 		println("lost")
 	}
+
+	mu.Unlock()
 }
 
 func requestVote() bool {
